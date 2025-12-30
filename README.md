@@ -19,7 +19,7 @@ Then restart your computer or log out/in to test.
 
 - ✅ Starts Docker service at boot (before login)
 - ✅ Opens Docker Desktop GUI when you login
-- ✅ Creates log file at `C:\ProgramData\DockerStartup.log`
+- ✅ Creates log file at `C:\ProgramData\docker-autostart\DockerStartup.log`
 
 ## Remove
 
