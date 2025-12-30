@@ -38,8 +38,4 @@ Start-ScheduledTask -TaskName "StartDockerDesktopAtLogin"
 Get-Content C:\ProgramData\DockerStartup.log
 ```
 
-## Troubleshooting
 
-**GUI not opening?** Check log file and verify Docker Desktop is installed.
-
-**Service not starting?** Run `Get-Service com.docker.service` to verify service exists.
