@@ -6,9 +6,10 @@
 $serviceTaskName = "StartDockerServiceAtBoot"
 $guiTaskName = "StartDockerDesktopAtLogin"
 $taskDescription = "Starts Docker service at boot and Docker Desktop GUI at user login."
-$serviceWrapperPath = Join-Path $env:ProgramData "DockerServiceStartWrapper.ps1"
-$guiWrapperPath = Join-Path $env:ProgramData "DockerGUIStartWrapper.ps1"
-$logPath = Join-Path $env:ProgramData "DockerStartup.log"
+$scriptFolder = Join-Path $env:ProgramData "docker-autostart"
+$serviceWrapperPath = Join-Path $scriptFolder "DockerServiceStartWrapper.ps1"
+$guiWrapperPath = Join-Path $scriptFolder "DockerGUIStartWrapper.ps1"
+$logPath = Join-Path $scriptFolder "DockerStartup.log"
 
 try {
     # Check if running as Administrator
@@ -61,27 +62,56 @@ try {
         exit 1
     }
 
+    # Create script folder if it doesn't exist
+    if (-not (Test-Path $scriptFolder)) {
+        New-Item -Path $scriptFolder -ItemType Directory -Force | Out-Null
+        Write-Host "Created folder: $scriptFolder" -ForegroundColor Green
+    }
+
+    # Copy this setup script to the docker-autostart folder for future reference
+    $currentScriptPath = $MyInvocation.MyCommand.Path
+    if (-not $currentScriptPath) {
+        $currentScriptPath = $PSCommandPath
+    }
+    if ($currentScriptPath) {
+        $setupScriptDestination = Join-Path $scriptFolder "Setup-DockerAutoStart.ps1"
+        if ($currentScriptPath -ne $setupScriptDestination) {
+            Copy-Item -Path $currentScriptPath -Destination $setupScriptDestination -Force -ErrorAction SilentlyContinue
+            Write-Host "Setup script copied to: $setupScriptDestination" -ForegroundColor Green
+        }
+    }
+
     # Create wrapper script for Docker SERVICE (runs at boot)
-    $serviceWrapperContent = @'
+    $serviceWrapperContent = @"
 # Docker Service Startup Wrapper Script
-$logPath = "C:\ProgramData\DockerStartup.log"
+`$logPath = "$logPath"
 
 function Write-Log {
-    param([string]$message)
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logMessage = "[$timestamp] [SERVICE] $message"
-    Add-Content -Path $logPath -Value $logMessage -ErrorAction SilentlyContinue
-    Write-Host $logMessage
+    param([string]`$message)
+    `$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    `$logMessage = "[`$timestamp] [SERVICE] `$message"
+    Add-Content -Path `$logPath -Value `$logMessage -ErrorAction SilentlyContinue
+    Write-Host `$logMessage
 }
 
 try {
     Write-Log "=== Docker Service Startup Script Started ==="
     
-    $dockerService = Get-Service -Name "com.docker.service" -ErrorAction SilentlyContinue
-    if ($dockerService) {
-        Write-Log "Docker service found. Current status: $($dockerService.Status)"
+    # Clean up Docker's service log files that accumulate on each boot
+    `$dockerDataPath = "`$env:ProgramData\Docker"
+    if (Test-Path `$dockerDataPath) {
+        Write-Log "Cleaning up old Docker service log files..."
+        Get-ChildItem -Path `$dockerDataPath -Filter "service*.txt" -ErrorAction SilentlyContinue | ForEach-Object {
+            Remove-Item `$_.FullName -Force -ErrorAction SilentlyContinue
+            Write-Log "Removed: `$(`$_.Name)"
+        }
+    }
+    
+    `$dockerService = Get-Service -Name "com.docker.service" -ErrorAction SilentlyContinue
+    if (`$dockerService) {
+        Write-Log "Docker service found. Current status: `$(`$dockerService.Status)"
         
-        if ($dockerService.Status -ne 'Running') {
+        if (`$dockerService.Status -ne 'Running') {
             Write-Log "Starting Docker service..."
             Start-Service -Name "com.docker.service" -ErrorAction Stop
             Start-Sleep -Seconds 3
@@ -97,22 +127,22 @@ try {
     Write-Log "=== Docker Service Startup Script Completed ==="
     
 } catch {
-    Write-Log "ERROR: $($_.Exception.Message)"
+    Write-Log "ERROR: `$(`$_.Exception.Message)"
     exit 1
 }
-'@
+"@
 
     # Create wrapper script for Docker DESKTOP GUI (runs at login)
-    $guiWrapperContent = @'
+    $guiWrapperContent = @"
 # Docker Desktop GUI Startup Wrapper Script
-$logPath = "C:\ProgramData\DockerStartup.log"
+`$logPath = "$logPath"
 
 function Write-Log {
-    param([string]$message)
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logMessage = "[$timestamp] [GUI] $message"
-    Add-Content -Path $logPath -Value $logMessage -ErrorAction SilentlyContinue
-    Write-Host $logMessage
+    param([string]`$message)
+    `$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    `$logMessage = "[`$timestamp] [GUI] `$message"
+    Add-Content -Path `$logPath -Value `$logMessage -ErrorAction SilentlyContinue
+    Write-Host `$logMessage
 }
 
 try {
@@ -120,30 +150,30 @@ try {
     
     Start-Sleep -Seconds 5
     
-    $dockerProcess = Get-Process "Docker Desktop" -ErrorAction SilentlyContinue
-    if ($dockerProcess) {
-        Write-Log "Docker Desktop is already running (PID: $($dockerProcess.Id))."
+    `$dockerProcess = Get-Process "Docker Desktop" -ErrorAction SilentlyContinue
+    if (`$dockerProcess) {
+        Write-Log "Docker Desktop is already running (PID: `$(`$dockerProcess.Id))."
         exit 0
     }
     
     Write-Log "Launching Docker Desktop GUI..."
-    $dockerPath = "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
+    `$dockerPath = "`$env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
     
-    if (Test-Path $dockerPath) {
-        Start-Process -FilePath $dockerPath -ErrorAction Stop
+    if (Test-Path `$dockerPath) {
+        Start-Process -FilePath `$dockerPath -ErrorAction Stop
         Write-Log "Docker Desktop GUI started successfully."
     } else {
-        Write-Log "ERROR: Docker Desktop executable not found at: $dockerPath"
+        Write-Log "ERROR: Docker Desktop executable not found at: `$dockerPath"
         exit 1
     }
     
     Write-Log "=== Docker Desktop GUI Startup Script Completed ==="
     
 } catch {
-    Write-Log "ERROR: $($_.Exception.Message)"
+    Write-Log "ERROR: `$(`$_.Exception.Message)"
     exit 1
 }
-'@
+"@
 
     # Write wrapper scripts
     $serviceWrapperContent | Out-File -FilePath $serviceWrapperPath -Encoding UTF8 -Force
