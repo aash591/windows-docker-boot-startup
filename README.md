@@ -17,4 +17,4 @@ Auto-start Docker Desktop on boot. Pick the script that fits your setup.
 
 ## Uninstall
 
-Double-click `Uninstall-DockerBootSetup.bat` — it will scan for scheduled tasks, files, and registry keys, then ask once (`y`) before removing them.
+Double-click `Uninstall-DockerBootSetup.bat` — it will scan for scheduled tasks, files, and saved registry keys, and remove them.
