@@ -1,4 +1,4 @@
-# Docker Desktop Auto-Start for Windows
+# Start Docker at Windows startup
 
 Auto-start Docker Desktop on boot. Pick the script that fits your setup.
 
