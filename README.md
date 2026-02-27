@@ -7,7 +7,7 @@ Auto-start Docker Desktop on boot. Pick the script that fits your setup.
 | Script | Use Case |
 |--------|----------|
 | `Setup-DockerBootStart.bat` | Starts Docker service at boot + GUI at login |
-| `Setup-AutoLoginDockerLock.bat` | Auto-login + start Docker + lock screen (for servers) |
+| `Setup-AutoLoginDockerLock.bat` | windows Auto-login + start Docker + lock the screen |
 | `Uninstall-DockerBootSetup.bat` | Detects and removes everything created by either script |
 
 ## Usage
