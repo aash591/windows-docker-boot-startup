@@ -48,17 +48,17 @@ if %ERRORLEVEL% neq 0 (
 :: Step 2: Create folder
 echo.
 echo [2/5] Creating setup folder...
-if not exist "C:\ProgramData\docker-autostart\" mkdir "C:\ProgramData\docker-autostart\"
-echo Folder ready: C:\ProgramData\docker-autostart\
+if not exist "C:\ProgramData\DockerAutoStart\" mkdir "C:\ProgramData\DockerAutoStart\"
+echo Folder ready: C:\ProgramData\DockerAutoStart\
 
 :: Step 3: Create Docker Service wrapper script
 echo.
 echo [3/5] Creating Docker service startup script...
-set "SVC=C:\ProgramData\docker-autostart\DockerServiceStartWrapper.ps1"
+set "SVC=C:\ProgramData\DockerAutoStart\DockerServiceStartWrapper.ps1"
 >"%SVC%" echo # Docker Service Startup Wrapper Script
 >>"%SVC%" echo # Runs at boot as SYSTEM to start the Docker service
 >>"%SVC%" echo.
->>"%SVC%" echo $logPath = 'C:\ProgramData\docker-autostart\DockerStartup.log'
+>>"%SVC%" echo $logPath = 'C:\ProgramData\DockerAutoStart\DockerStartup.log'
 >>"%SVC%" echo.
 >>"%SVC%" echo function Write-Log {
 >>"%SVC%" echo     param([string]$message)
@@ -115,11 +115,11 @@ echo Service script created: %SVC%
 :: Step 4: Create Docker Desktop GUI wrapper script
 echo.
 echo [4/5] Creating Docker Desktop GUI startup script...
-set "GUI=C:\ProgramData\docker-autostart\DockerGUIStartWrapper.ps1"
+set "GUI=C:\ProgramData\DockerAutoStart\DockerGUIStartWrapper.ps1"
 >"%GUI%" echo # Docker Desktop GUI Startup Wrapper Script
 >>"%GUI%" echo # Runs at user login to launch Docker Desktop
 >>"%GUI%" echo.
->>"%GUI%" echo $logPath = 'C:\ProgramData\docker-autostart\DockerStartup.log'
+>>"%GUI%" echo $logPath = 'C:\ProgramData\DockerAutoStart\DockerStartup.log'
 >>"%GUI%" echo.
 >>"%GUI%" echo function Write-Log {
 >>"%GUI%" echo     param([string]$message)
@@ -174,7 +174,7 @@ echo.
 echo Creating Task 1: Docker Service at Boot...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "$t='StartDockerServiceAtBoot'; " ^
-  "$s='C:\ProgramData\docker-autostart\DockerServiceStartWrapper.ps1'; " ^
+  "$s='C:\ProgramData\DockerAutoStart\DockerServiceStartWrapper.ps1'; " ^
   "$e=Get-ScheduledTask $t -EA 0; if($e){Unregister-ScheduledTask $t -Confirm:$false; Write-Host 'Removed existing service task.' -ForegroundColor Yellow}; " ^
   "$arg='-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ' + $s; " ^
   "$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arg; " ^
@@ -198,7 +198,7 @@ echo Creating Task 2: Docker Desktop GUI at Login...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "$u='%USERDOMAIN%\%USERNAME%'; " ^
   "$t='StartDockerDesktopAtLogin'; " ^
-  "$s='C:\ProgramData\docker-autostart\DockerGUIStartWrapper.ps1'; " ^
+  "$s='C:\ProgramData\DockerAutoStart\DockerGUIStartWrapper.ps1'; " ^
   "$e=Get-ScheduledTask $t -EA 0; if($e){Unregister-ScheduledTask $t -Confirm:$false; Write-Host 'Removed existing GUI task.' -ForegroundColor Yellow}; " ^
   "$arg='-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ' + $s; " ^
   "$a=New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arg; " ^
@@ -215,9 +215,6 @@ if %ERRORLEVEL% neq 0 (
     pause
     exit /b 1
 )
-
-:: Copy this batch file to the setup folder for reference
-copy /Y "%~f0" "C:\ProgramData\docker-autostart\Setup-DockerAutoStart.bat" >nul 2>&1
 
 :: Verification
 echo.
@@ -237,9 +234,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "if($t2){Write-Host '  GUI Task:' $t2.State -ForegroundColor Green} else {Write-Host '  GUI Task: NOT FOUND' -ForegroundColor Red}; " ^
   "Write-Host ''; " ^
   "Write-Host 'Files:' -ForegroundColor Cyan; " ^
-  "Write-Host '  Service Script:' (Test-Path 'C:\ProgramData\docker-autostart\DockerServiceStartWrapper.ps1') -ForegroundColor Green; " ^
-  "Write-Host '  GUI Script:' (Test-Path 'C:\ProgramData\docker-autostart\DockerGUIStartWrapper.ps1') -ForegroundColor Green; " ^
-  "Write-Host '  Log File: C:\ProgramData\docker-autostart\DockerStartup.log' -ForegroundColor White"
+  "Write-Host '  Service Script:' (Test-Path 'C:\ProgramData\DockerAutoStart\DockerServiceStartWrapper.ps1') -ForegroundColor Green; " ^
+  "Write-Host '  GUI Script:' (Test-Path 'C:\ProgramData\DockerAutoStart\DockerGUIStartWrapper.ps1') -ForegroundColor Green; " ^
+  "Write-Host '  Log File: C:\ProgramData\DockerAutoStart\DockerStartup.log' -ForegroundColor White"
 
 echo.
 echo =====================================================
@@ -254,7 +251,7 @@ echo   Task 2 - Docker Desktop GUI:
 echo     Name: StartDockerDesktopAtLogin
 echo     Runs at: User Login (as %USERDOMAIN%\%USERNAME%)
 echo.
-echo   Log File: C:\ProgramData\docker-autostart\DockerStartup.log
+echo   Log File: C:\ProgramData\DockerAutoStart\DockerStartup.log
 echo.
 echo   To remove tasks:
 echo     Run in PowerShell (Admin):
