@@ -1,20 +1,14 @@
-# Start Docker at Windows startup
+# Windows Docker Boot Startup Scripts
 
-Auto-start Docker Desktop on boot. Pick the script that fits your setup.
+Run one setup `.bat` as Administrator, then reboot.
 
-## Scripts
+## Script Flow
 
-| Script | Use Case |
-|--------|----------|
-| `Setup-DockerBootStart.bat` | Starts Docker service at boot + GUI at login |
-| `Setup-AutoLoginDockerLock.bat` | windows Auto-login + start Docker + lock the screen |
-| `Uninstall-DockerBootSetup.bat` | Detects and removes everything created by either script |
+| Script | Flow (key steps) |
+|---|---|
+| `Setup-DockerBootStart.bat` | Check Docker Desktop -> create `DockerServiceStartWrapper.ps1` + `DockerGUIStartWrapper.ps1` -> create tasks `StartDockerServiceAtBoot` (SYSTEM, startup) and `StartDockerDesktopAtLogin` (user login) -> log to `DockerStartup.log`. |
+| `Setup-AutoLoginDockerLock.bat` | Prompt user/password -> enable Winlogon auto-login (**password in registry**) -> create `LockAfterLogin.ps1` -> task `DockerStartAndLockAfterAutoLogin` at login -> start Docker Desktop -> wait up to 120s for engine -> lock workstation. |
+| `Setup-SecureAutoLoginDockerLock.bat` | Prompt user/password -> store password in LSA secret (**not plain-text registry**) -> create `LockAfterLogin.ps1` -> task `DockerStartAndLockAfterAutoLogin` at login -> start Docker Desktop -> wait up to 120s -> lock workstation. |
+| `Uninstall-DockerBootSetup.bat` | Detect created tasks/files/auto-login settings -> ask `y/n` -> remove tasks + `C:\ProgramData\DockerAutoStart\` -> disable auto-login -> clean registry password + attempt LSA secret cleanup -> verify removal. |
 
-## Usage
-
-1. Double-click the `.bat` file you need
-2. Restart to test
-
-## Uninstall
-
-Double-click `Uninstall-DockerBootSetup.bat` — it will scan for scheduled tasks, files, and saved registry keys, and remove them.
+Common output path: `C:\ProgramData\DockerAutoStart\`
