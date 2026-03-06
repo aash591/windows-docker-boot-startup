@@ -1,4 +1,4 @@
-# Start Docker Desktop at Windows Startup Scripts
+# Run Docker Desktop at Windows Startup Scripts
 
 Run one setup `.bat` as Administrator, then reboot.
 
