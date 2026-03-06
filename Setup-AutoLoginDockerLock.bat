@@ -95,20 +95,20 @@ if %ERRORLEVEL% neq 0 (
 :: Step 3: Create folder
 echo.
 echo [3/5] Creating setup folder...
-if not exist "C:\ProgramData\AutoLoginLock\" mkdir "C:\ProgramData\AutoLoginLock\"
-echo Folder ready: C:\ProgramData\AutoLoginLock\
+if not exist "C:\ProgramData\DockerAutoStart\" mkdir "C:\ProgramData\DockerAutoStart\"
+echo Folder ready: C:\ProgramData\DockerAutoStart\
 
 :: Step 4: Create the login script (Docker Start + Lock)
 echo.
 echo [4/5] Creating Docker startup + lock script...
-set "PS1=C:\ProgramData\AutoLoginLock\LockAfterLogin.ps1"
+set "PS1=C:\ProgramData\DockerAutoStart\LockAfterLogin.ps1"
 >"%PS1%" echo # ============================================================
 >>"%PS1%" echo # LockAfterLogin.ps1
 >>"%PS1%" echo # Runs at login: Start Docker Desktop, wait for engine, then lock
 >>"%PS1%" echo # Designed for Windows Server where Docker needs a login session
 >>"%PS1%" echo # ============================================================
 >>"%PS1%" echo.
->>"%PS1%" echo $logFile = 'C:\ProgramData\AutoLoginLock\AutoLoginLock.log'
+>>"%PS1%" echo $logFile = 'C:\ProgramData\DockerAutoStart\AutoLoginLock.log'
 >>"%PS1%" echo $dockerExe = Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'
 >>"%PS1%" echo $maxWaitSeconds = 120
 >>"%PS1%" echo.
@@ -186,7 +186,7 @@ echo [5/5] Creating scheduled task...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "$u='%username%'; " ^
   "$t='DockerStartAndLockAfterAutoLogin'; " ^
-  "$s='C:\ProgramData\AutoLoginLock\LockAfterLogin.ps1'; " ^
+  "$s='C:\ProgramData\DockerAutoStart\LockAfterLogin.ps1'; " ^
   "$e=Get-ScheduledTask $t -EA 0; if($e){Unregister-ScheduledTask $t -Confirm:$false}; " ^
   "$oldTask=Get-ScheduledTask 'LockScreenAfterAutoLogin' -EA 0; if($oldTask){Unregister-ScheduledTask 'LockScreenAfterAutoLogin' -Confirm:$false; Write-Host 'Removed old LockScreenAfterAutoLogin task.' -ForegroundColor Yellow}; " ^
   "$arg='-NoProfile -ExecutionPolicy Bypass -NonInteractive -WindowStyle Hidden -File ' + $s; " ^
@@ -228,7 +228,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ^
   "Write-Host 'Scheduled Task:' -ForegroundColor Cyan; " ^
   "$tc=Get-ScheduledTask 'DockerStartAndLockAfterAutoLogin' -EA 0; " ^
   "if($tc){Write-Host '  Task Status:' $tc.State -ForegroundColor Green} else {Write-Host '  Task: NOT FOUND' -ForegroundColor Red}; " ^
-  "Write-Host '  Script exists:' (Test-Path 'C:\ProgramData\AutoLoginLock\LockAfterLogin.ps1') -ForegroundColor Green"
+  "Write-Host '  Script exists:' (Test-Path 'C:\ProgramData\DockerAutoStart\LockAfterLogin.ps1') -ForegroundColor Green"
 
 echo.
 echo =====================================================
@@ -249,7 +249,7 @@ echo   5. Locks the screen automatically
 echo   6. Docker continues running behind the lock screen
 echo.
 echo Check logs after reboot:
-echo   C:\ProgramData\AutoLoginLock\AutoLoginLock.log
+echo   C:\ProgramData\DockerAutoStart\AutoLoginLock.log
 echo.
 echo Press any key to exit...
 pause >nul
